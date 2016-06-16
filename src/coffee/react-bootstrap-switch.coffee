@@ -45,7 +45,7 @@ module.exports = React.createClass
 
   value: (val, nextProps = {}) ->
     disabled = if typeof nextProps.disabled is "undefined" then @state.disabled else nextProps.disabled
-    readonly = if typeof nextProps.readonly is "undefined" then @state.disabled else nextProps.readonly
+    readonly = if typeof nextProps.readonly is "undefined" then @state.readonly else nextProps.readonly
 
     return @state.state  if typeof val is "undefined"
     return @  if disabled or readonly
