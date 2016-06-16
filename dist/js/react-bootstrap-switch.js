@@ -1,5 +1,5 @@
 /* ========================================================================
- * react-bootstrap-switch - v3.4.4
+ * react-bootstrap-switch - v3.4.5
  * https://github.com/Julusian/react-bootstrap-switch
  * ========================================================================
  * Copyright 2012-2015 Julian Waller
@@ -176,11 +176,11 @@
     },
     _elmTrigger: function(e) {
       var elm;
-      elm = $(this.refs.element);
+      elm = $(this._element);
       return elm.trigger(e);
     },
     _handleHandlers: function() {
-      $(this.refs.on).on("click.bootstrapSwitch", (function(_this) {
+      $(this._on).on("click.bootstrapSwitch", (function(_this) {
         return function(event) {
           event.preventDefault();
           event.stopPropagation();
@@ -191,7 +191,7 @@
           return _this._elmTrigger("focus.bootstrapSwitch");
         };
       })(this));
-      return $(this.refs.off).on("click.bootstrapSwitch", (function(_this) {
+      return $(this._off).on("click.bootstrapSwitch", (function(_this) {
         return function(event) {
           event.preventDefault();
           event.stopPropagation();
@@ -212,12 +212,12 @@
           });
         };
       })(this);
-      if ($(this.refs.wrapper).is(":visible")) {
+      if ($(this._wrapper).is(":visible")) {
         init();
       } else {
         initInterval = window.setInterval((function(_this) {
           return function() {
-            if ($(_this.refs.wrapper).is(":visible")) {
+            if ($(_this._wrapper).is(":visible")) {
               init();
               return window.clearInterval(initInterval);
             }
@@ -230,9 +230,9 @@
     },
     _width: function(callback) {
       var $handles, $label, $off, $on, handleWidth;
-      $on = $(this.refs.on);
-      $off = $(this.refs.off);
-      $label = $(this.refs.label);
+      $on = $(this._on);
+      $off = $(this._off);
+      $label = $(this._label);
       $handles = $on.add($off);
       $handles.add($label).css("width", "");
       handleWidth = this.state.handleWidth === "auto" ? Math.max($on.width(), $off.width()) : this.state.handleWidth;
@@ -276,7 +276,7 @@
     },
     _elementHandlers: function() {
       var $element;
-      $element = $(this.refs.element);
+      $element = $(this._element);
       return $element.on({
         "change.bootstrapSwitch": (function(_this) {
           return function(e, skip) {
@@ -322,7 +322,7 @@
     },
     _labelHandlers: function() {
       var $label;
-      $label = $(this.refs.label);
+      $label = $(this._label);
       return $label.on({
         "click": function(e) {
           return e.stopPropagation();
@@ -422,14 +422,22 @@
         };
       })(this)();
       onElm = React.createElement("span", {
-        "ref": "on",
+        "ref": ((function(_this) {
+          return function(c) {
+            return _this._on = c;
+          };
+        })(this)),
         "style": {
           width: this.state.handleWidth
         },
         "className": (this._prop('baseClass')) + "-handle-on " + (this._prop('baseClass')) + "-" + (this._prop('onColor'))
       }, this._prop('onText'));
       offElm = React.createElement("span", {
-        "ref": "off",
+        "ref": ((function(_this) {
+          return function(c) {
+            return _this._off = c;
+          };
+        })(this)),
         "style": {
           width: this.state.handleWidth
         },
@@ -442,13 +450,21 @@
       }
       return React.createElement("div", {
         "className": wrapperClass,
-        "ref": "wrapper",
+        "ref": ((function(_this) {
+          return function(c) {
+            return _this._wrapper = c;
+          };
+        })(this)),
         "style": {
           width: wrapperWidth
         }
       }, React.createElement("div", {
         "className": (this._prop('baseClass')) + "-container",
-        "ref": "container",
+        "ref": ((function(_this) {
+          return function(c) {
+            return _this._container = c;
+          };
+        })(this)),
         "style": {
           width: containerWidth,
           marginLeft: this.state.offset
@@ -458,10 +474,18 @@
         "style": {
           width: this.state.labelWidth
         },
-        "ref": "label"
+        "ref": ((function(_this) {
+          return function(c) {
+            return _this._label = c;
+          };
+        })(this))
       }, this._prop('labelText')), (this._prop('inverse') ? onElm : offElm), React.createElement("input", {
         "type": "checkbox",
-        "ref": "element"
+        "ref": ((function(_this) {
+          return function(c) {
+            return _this._element = c;
+          };
+        })(this))
       })));
     }
   });
