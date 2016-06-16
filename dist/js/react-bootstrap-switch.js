@@ -65,7 +65,7 @@
         nextProps = {};
       }
       disabled = typeof nextProps.disabled === "undefined" ? this.state.disabled : nextProps.disabled;
-      readonly = typeof nextProps.readonly === "undefined" ? this.state.disabled : nextProps.readonly;
+      readonly = typeof nextProps.readonly === "undefined" ? this.state.readonly : nextProps.readonly;
       if (typeof val === "undefined") {
         return this.state.state;
       }
