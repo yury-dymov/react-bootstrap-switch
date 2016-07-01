@@ -1,5 +1,5 @@
 /* ========================================================================
- * react-bootstrap-switch - v3.4.5
+ * react-bootstrap-switch - v3.5.0
  * https://github.com/Julusian/react-bootstrap-switch
  * ========================================================================
  * Copyright 2012-2015 Julian Waller
@@ -9,11 +9,11 @@
  */
 
 (function() {
-  var $, React;
+  var React, findDOMNode;
 
   React = require('react');
 
-  $ = require('jquery');
+  findDOMNode = require('react-dom').findDOMNode;
 
   module.exports = React.createClass({
     defaults: {
@@ -174,37 +174,23 @@
         };
       })(this));
     },
-    _elmTrigger: function(e) {
-      var elm;
-      elm = $(this._element);
-      return elm.trigger(e);
+    _handleToggle: function(event, value) {
+      event.preventDefault();
+      event.stopPropagation();
+      if (this.state.disabled || this.state.readonly) {
+        return;
+      }
+      this._changeState(value);
+      return this._handleElementFocus;
     },
-    _handleHandlers: function() {
-      $(this._on).on("click.bootstrapSwitch", (function(_this) {
-        return function(event) {
-          event.preventDefault();
-          event.stopPropagation();
-          if (_this.state.disabled || _this.state.readonly) {
-            return;
-          }
-          _this._changeState(false);
-          return _this._elmTrigger("focus.bootstrapSwitch");
-        };
-      })(this));
-      return $(this._off).on("click.bootstrapSwitch", (function(_this) {
-        return function(event) {
-          event.preventDefault();
-          event.stopPropagation();
-          if (_this.state.disabled || _this.state.readonly) {
-            return;
-          }
-          _this._changeState(true);
-          return _this._elmTrigger("focus.bootstrapSwitch");
-        };
-      })(this));
+    _handleOnClick: function(event) {
+      return this._handleToggle(event, false);
+    },
+    _handleOffClick: function(event) {
+      return this._handleToggle(event, true);
     },
     componentDidMount: function() {
-      var init, initInterval;
+      var init, initInterval, wrapperVisible;
       init = (function(_this) {
         return function() {
           return _this._width(function() {
@@ -212,42 +198,32 @@
           });
         };
       })(this);
-      if ($(this._wrapper).is(":visible")) {
-        init();
+      wrapperVisible = (function(_this) {
+        return function() {
+          var elem;
+          elem = findDOMNode(_this._wrapper);
+          return elem.offsetWidth > 0 && elem.offsetHeight > 0;
+        };
+      })(this);
+      if (wrapperVisible()) {
+        return init();
       } else {
-        initInterval = window.setInterval((function(_this) {
-          return function() {
-            if ($(_this._wrapper).is(":visible")) {
-              init();
-              return window.clearInterval(initInterval);
-            }
-          };
-        })(this), 50);
+        return initInterval = window.setInterval(function() {
+          if (wrapperVisible()) {
+            init();
+            return window.clearInterval(initInterval);
+          }
+        }, 50);
       }
-      this._handleHandlers();
-      this._labelHandlers();
-      return this._elementHandlers();
     },
     _width: function(callback) {
-      var $handles, $label, $off, $on, handleWidth;
-      $on = $(this._on);
-      $off = $(this._off);
-      $label = $(this._label);
-      $handles = $on.add($off);
-      $handles.add($label).css("width", "");
-      handleWidth = this.state.handleWidth === "auto" ? Math.max($on.width(), $off.width()) : this.state.handleWidth;
-      $handles.width(handleWidth);
-      $label.width((function(_this) {
-        return function(index, width) {
-          if (_this.state.labelWidth !== "auto") {
-            return _this.state.labelWidth;
-          }
-          return Math.max(handleWidth, width);
-        };
-      })(this));
+      var offWidth, onWidth, width;
+      onWidth = findDOMNode(this._on).offsetWidth;
+      offWidth = findDOMNode(this._off).offsetWidth;
+      width = Math.max(onWidth, offWidth);
       return this.setState({
-        handleWidth: $on.outerWidth(),
-        labelWidth: $label.outerWidth()
+        handleWidth: width,
+        labelWidth: width
       }, callback);
     },
     _containerPosition: function(state) {
@@ -274,121 +250,116 @@
         });
       }
     },
-    _elementHandlers: function() {
-      var $element;
-      $element = $(this._element);
-      return $element.on({
-        "change.bootstrapSwitch": (function(_this) {
-          return function(e, skip) {
+    _handleElementChange: (function(_this) {
+      return function(e) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        return _this._changeState(!_this.state.state);
+      };
+    })(this),
+    _handleElementFocus: (function(_this) {
+      return function(e) {
+        if (e) {
+          e.preventDefault();
+        }
+        return _this.setState({
+          focus: true
+        });
+      };
+    })(this),
+    _handleElementBlur: (function(_this) {
+      return function(e) {
+        e.preventDefault();
+        return _this.setState({
+          focus: false
+        });
+      };
+    })(this),
+    _handleElementKeyDown: (function(_this) {
+      return function(e) {
+        if (!e.which || _this.state.disabled || _this.state.readonly) {
+          return;
+        }
+        switch (e.which) {
+          case 37:
             e.preventDefault();
             e.stopImmediatePropagation();
-            return _this._changeState(!_this.state.state);
-          };
-        })(this),
-        "focus.bootstrapSwitch": (function(_this) {
-          return function(e) {
+            return _this._changeState(false);
+          case 39:
             e.preventDefault();
-            return _this.setState({
-              focus: true
-            });
-          };
-        })(this),
-        "blur.bootstrapSwitch": (function(_this) {
-          return function(e) {
-            e.preventDefault();
-            return _this.setState({
-              focus: false
-            });
-          };
-        })(this),
-        "keydown.bootstrapSwitch": (function(_this) {
-          return function(e) {
-            if (!e.which || _this.state.disabled || _this.state.readonly) {
-              return;
-            }
-            switch (e.which) {
-              case 37:
-                e.preventDefault();
-                e.stopImmediatePropagation();
-                return _this._changeState(false);
-              case 39:
-                e.preventDefault();
-                e.stopImmediatePropagation();
-                return _this._changeState(true);
-            }
-          };
-        })(this)
+            e.stopImmediatePropagation();
+            return _this._changeState(true);
+        }
+      };
+    })(this),
+    _handleLabelClick: function(e) {
+      return e.stopPropagation();
+    },
+    _handleLabelMouseDown: function(e) {
+      if (this.state.dragStart || this.state.disabled || this.state.readonly) {
+        return;
+      }
+      e.preventDefault();
+      e.stopPropagation();
+      this.setState({
+        indeterminate: false,
+        dragStart: (e.pageX || e.originalEvent.touches[0].pageX) - parseInt(this.state.offset, 10)
+      });
+      return this._handleElementFocus;
+    },
+    _handleLabelTouchStart: function(e) {
+      return this._handleLabelMouseDown(e);
+    },
+    _handleLabelMouseMove: function(e) {
+      var difference;
+      if (this.state.dragStart == null) {
+        return;
+      }
+      e.preventDefault();
+      difference = (e.pageX || e.originalEvent.touches[0].pageX) - this.state.dragStart;
+      if (difference < -this.state.handleWidth || difference > 0) {
+        return;
+      }
+      return this.setState({
+        skipAnimation: false,
+        offset: difference + "px",
+        dragged: true
       });
     },
-    _labelHandlers: function() {
-      var $label;
-      $label = $(this._label);
-      return $label.on({
-        "click": function(e) {
-          return e.stopPropagation();
-        },
-        "mousedown.bootstrapSwitch touchstart.bootstrapSwitch": (function(_this) {
-          return function(e) {
-            if (_this.state.dragStart || _this.state.disabled || _this.state.readonly) {
-              return;
-            }
-            e.preventDefault();
-            e.stopPropagation();
-            _this.setState({
-              indeterminate: false,
-              dragStart: (e.pageX || e.originalEvent.touches[0].pageX) - parseInt(_this.state.offset, 10)
-            });
-            return _this._elmTrigger("focus.bootstrapSwitch");
-          };
-        })(this),
-        "mousemove.bootstrapSwitch touchmove.bootstrapSwitch": (function(_this) {
-          return function(e) {
-            var difference;
-            if (_this.state.dragStart == null) {
-              return;
-            }
-            e.preventDefault();
-            difference = (e.pageX || e.originalEvent.touches[0].pageX) - _this.state.dragStart;
-            if (difference < -_this.state.handleWidth || difference > 0) {
-              return;
-            }
-            return _this.setState({
-              skipAnimation: false,
-              offset: difference + "px",
-              dragged: true
-            });
-          };
-        })(this),
-        "mouseup.bootstrapSwitch touchend.bootstrapSwitch": (function(_this) {
-          return function(e) {
-            var difference, state;
-            if (!_this.state.dragStart) {
-              return;
-            }
-            e.preventDefault();
-            state = !_this.state.state;
-            if (_this.state.dragged) {
-              difference = parseInt(_this.state.offset);
-              state = difference > -(_this.state.handleWidth / 2);
-              state = _this._prop('inverse') ? !state : state;
-            }
-            return _this.setState({
-              dragStart: false,
-              dragged: false,
-              state: state
-            }, function() {
-              _this._containerPosition();
-              return _this._fireStateChange();
-            });
-          };
-        })(this),
-        "mouseleave.bootstrapSwitch": function(e) {
-          return $label.trigger("mouseup.bootstrapSwitch");
-        }
-      });
+    _handleLabelTouchMove: function(e) {
+      return this._handleLabelMouseMove(e);
+    },
+    _handleLabelMouseUp: function(e) {
+      var difference, state;
+      if (!this.state.dragStart) {
+        return;
+      }
+      e.preventDefault();
+      state = !this.state.state;
+      if (this.state.dragged) {
+        difference = parseInt(this.state.offset);
+        state = difference > -(this.state.handleWidth / 2);
+        state = this._prop('inverse') ? !state : state;
+      }
+      return this.setState({
+        dragStart: false,
+        dragged: false,
+        state: state
+      }, (function(_this) {
+        return function() {
+          _this._containerPosition();
+          return _this._fireStateChange();
+        };
+      })(this));
+    },
+    _handleLabelTouchEnd: function(e) {
+      return this._handleLabelMouseUp(e);
+    },
+    _handleLabelMouseLeave: function(e) {
+      return this._handleLabelMouseUp(e);
     },
     render: function() {
-      var containerWidth, offElm, onElm, wrapperClass, wrapperWidth;
+      var containerWidth, label, offElm, onElm, wrapperClass, wrapperWidth;
       wrapperClass = (function(_this) {
         return function() {
           var classes;
@@ -430,8 +401,28 @@
         "style": {
           width: this.state.handleWidth
         },
+        "onClick": this._handleOnClick,
         "className": (this._prop('baseClass')) + "-handle-on " + (this._prop('baseClass')) + "-" + (this._prop('onColor'))
       }, this._prop('onText'));
+      label = React.createElement("span", {
+        "className": (this._prop('baseClass')) + "-label",
+        "style": {
+          width: this.state.labelWidth
+        },
+        "ref": ((function(_this) {
+          return function(c) {
+            return _this._label = c;
+          };
+        })(this)),
+        "onClick": this._handleLabelClick,
+        "onMouseDown": this._handleLabelMouseDown,
+        "onTouchDown": this._handleLabelTouchStart,
+        "onMouseMove": this._handleLabelMouseMove,
+        "onTouchMove": this._handleLabelTouchMove,
+        "onMouseUp": this._handleLabelMouseUp,
+        "onMouseLeave": this._handleLabelMouseLeave,
+        "onTouchEnd": this._handleLabelTouchEnd
+      }, this._prop('labelText'));
       offElm = React.createElement("span", {
         "ref": ((function(_this) {
           return function(c) {
@@ -441,6 +432,7 @@
         "style": {
           width: this.state.handleWidth
         },
+        "onClick": this._handleOffClick,
         "className": (this._prop('baseClass')) + "-handle-off " + (this._prop('baseClass')) + "-" + (this._prop('offColor'))
       }, this._prop('offText'));
       containerWidth = this.state.labelWidth + this.state.handleWidth * 2;
@@ -469,23 +461,12 @@
           width: containerWidth,
           marginLeft: this.state.offset
         }
-      }, (this._prop('inverse') ? offElm : onElm), React.createElement("span", {
-        "className": (this._prop('baseClass')) + "-label",
-        "style": {
-          width: this.state.labelWidth
-        },
-        "ref": ((function(_this) {
-          return function(c) {
-            return _this._label = c;
-          };
-        })(this))
-      }, this._prop('labelText')), (this._prop('inverse') ? onElm : offElm), React.createElement("input", {
-        "type": "checkbox",
-        "ref": ((function(_this) {
-          return function(c) {
-            return _this._element = c;
-          };
-        })(this))
+      }, (this._prop('inverse') ? offElm : onElm), label, (this._prop('inverse') ? onElm : offElm), React.createElement("input", {
+        "type": 'checkbox',
+        "onChange": this._handleElementChange,
+        "_onFocus": this._handleElementFocus,
+        "onBlur": this._handleElementBlur,
+        "onKeyDown": this._handleElementKeyDown
       })));
     }
   });

@@ -1,5 +1,5 @@
 React = require('react')
-$ = require('jquery')
+findDOMNode = require('react-dom').findDOMNode
 
 module.exports = React.createClass
   defaults:
@@ -127,71 +127,48 @@ module.exports = React.createClass
         @_containerPosition()
         @_fireStateChange()
 
-  _elmTrigger: (e) ->
-    elm = $ @_element
-    elm.trigger e
+  _handleToggle: (event, value) ->
+    event.preventDefault()
+    event.stopPropagation()
 
-  _handleHandlers: ->
-    $(@_on).on "click.bootstrapSwitch", (event) =>
-      event.preventDefault()
-      event.stopPropagation()
+    return  if @state.disabled or @state.readonly
 
-      return  if @state.disabled or @state.readonly
+    @_changeState value
+    @_handleElementFocus
 
-      @_changeState false
-      @_elmTrigger "focus.bootstrapSwitch"
 
-    $(@_off).on "click.bootstrapSwitch", (event) =>
-      event.preventDefault()
-      event.stopPropagation()
+  _handleOnClick: (event) ->
+    @_handleToggle event, false
 
-      return  if @state.disabled or @state.readonly
-
-      @_changeState true
-      @_elmTrigger "focus.bootstrapSwitch"
+  _handleOffClick: (event) ->
+    @_handleToggle event, true
 
   componentDidMount: ->
     init = =>
       @_width => @_containerPosition null
 
-    if $(@_wrapper).is ":visible"
+    wrapperVisible = =>
+      elem = findDOMNode(@_wrapper)
+      elem.offsetWidth > 0 && elem.offsetHeight > 0
+
+    if wrapperVisible()
       init()
     else
-      initInterval = window.setInterval =>
-        if $(@_wrapper).is ":visible"
+      initInterval = window.setInterval ->
+        if wrapperVisible()
           init()
           window.clearInterval initInterval
       , 50
 
-    @_handleHandlers()
-    @_labelHandlers()
-    @_elementHandlers()
-
   _width: (callback) ->
-    $on = $(@_on)
-    $off = $(@_off)
-    $label = $(@_label)
-    $handles = $on.add($off)
-
-    # remove width from inline style
-    $handles.add($label).css("width", "")
-
-    # save handleWidth for further label width calculation check
-    handleWidth = if @state.handleWidth is "auto"
-    then Math.max $on.width(), $off.width()
-    else @state.handleWidth
-
-    # set handles width
-    $handles.width handleWidth
-
-    # set label width
-    $label.width (index, width) =>
-      return @state.labelWidth  if @state.labelWidth isnt "auto"
-      Math.max handleWidth, width
+    onWidth   = findDOMNode(@_on).offsetWidth
+    offWidth  = findDOMNode(@_off).offsetWidth
+    width     = Math.max(onWidth, offWidth)
 
     @setState
-      handleWidth: $on.outerWidth()
-      labelWidth: $label.outerWidth(), callback
+      handleWidth: width
+      labelWidth: width, callback
+
 
   _containerPosition: (state = @state.state) ->
     values = [0, "-#{@state.handleWidth}px"]
@@ -212,92 +189,97 @@ module.exports = React.createClass
         skipAnimation: skipAnimation
         offset: if @_prop('inverse') then values[0] else values[1]
 
-  _elementHandlers: ->
-    $element = $ @_element
-    $element.on
-      "change.bootstrapSwitch": (e, skip) =>
+  _handleElementChange: (e) =>
+    e.preventDefault()
+    e.stopImmediatePropagation()
+
+    @_changeState not @state.state
+
+  _handleElementFocus: (e) =>
+    if e
+      e.preventDefault()
+    @setState
+      focus: true
+
+  _handleElementBlur: (e) =>
+    e.preventDefault()
+    @setState
+      focus: false
+
+  _handleElementKeyDown: (e) =>
+    return  if not e.which or @state.disabled or @state.readonly
+
+    switch e.which
+      when 37
         e.preventDefault()
         e.stopImmediatePropagation()
 
-        @_changeState not @state.state
-
-      "focus.bootstrapSwitch": (e) =>
+        @_changeState false
+      when 39
         e.preventDefault()
-        @setState
-          focus: true
+        e.stopImmediatePropagation()
 
-      "blur.bootstrapSwitch": (e) =>
-        e.preventDefault()
-        @setState
-          focus: false
-
-      "keydown.bootstrapSwitch": (e) =>
-        return  if not e.which or @state.disabled or @state.readonly
-
-        switch e.which
-          when 37
-            e.preventDefault()
-            e.stopImmediatePropagation()
-
-            @_changeState false
-          when 39
-            e.preventDefault()
-            e.stopImmediatePropagation()
-
-            @_changeState true
+        @_changeState true
 
 
-  _labelHandlers: ->
-    $label = $(@_label)
-    $label.on
-      "click": (e) ->
-        e.stopPropagation()
+  _handleLabelClick: (e) ->
+    e.stopPropagation()
 
-      "mousedown.bootstrapSwitch touchstart.bootstrapSwitch": (e) =>
-        return  if @state.dragStart or @state.disabled or @state.readonly
+  _handleLabelMouseDown: (e) ->
+    return  if @state.dragStart or @state.disabled or @state.readonly
 
-        e.preventDefault()
-        e.stopPropagation()
+    e.preventDefault()
+    e.stopPropagation()
 
-        @setState
-          indeterminate: false
-          dragStart: (e.pageX or e.originalEvent.touches[0].pageX) - parseInt @state.offset, 10
-        @_elmTrigger "focus.bootstrapSwitch"
+    @setState
+      indeterminate: false
+      dragStart: (e.pageX or e.originalEvent.touches[0].pageX) - parseInt @state.offset, 10
+    @_handleElementFocus
 
-      "mousemove.bootstrapSwitch touchmove.bootstrapSwitch": (e) =>
-        return  unless @state.dragStart?
+  _handleLabelTouchStart: (e) ->
+    @_handleLabelMouseDown e
 
-        e.preventDefault()
+  _handleLabelMouseMove: (e) ->
+    return  unless @state.dragStart?
 
-        difference = (e.pageX or e.originalEvent.touches[0].pageX) - @state.dragStart
-        return  if difference < -@state.handleWidth or difference > 0
+    e.preventDefault()
 
-        @setState
-          skipAnimation: false
-          offset: "#{difference}px"
-          dragged: true
+    difference = (e.pageX or e.originalEvent.touches[0].pageX) - @state.dragStart
+    return  if difference < -@state.handleWidth or difference > 0
 
-      "mouseup.bootstrapSwitch touchend.bootstrapSwitch": (e) =>
-        return  unless @state.dragStart
+    @setState
+      skipAnimation: false
+      offset: "#{difference}px"
+      dragged: true
 
-        e.preventDefault()
+  _handleLabelTouchMove: (e) ->
+    @_handleLabelMouseMove(e)
 
-        state = not @state.state
+  _handleLabelMouseUp: (e) ->
+    return  unless @state.dragStart
 
-        if @state.dragged
-          difference = parseInt @state.offset
-          state = difference > -(@state.handleWidth / 2)
-          state = if @_prop('inverse') then not state else state
+    e.preventDefault()
 
-        @setState
-          dragStart: false
-          dragged: false
-          state: state, =>
-            @_containerPosition()
-            @_fireStateChange()
+    state = not @state.state
 
-      "mouseleave.bootstrapSwitch": (e) ->
-        $label.trigger "mouseup.bootstrapSwitch"
+    if @state.dragged
+      difference = parseInt @state.offset
+      state = difference > -(@state.handleWidth / 2)
+      state = if @_prop('inverse') then not state else state
+
+    @setState
+      dragStart: false
+      dragged: false
+      state: state, =>
+        @_containerPosition()
+        @_fireStateChange()
+
+  _handleLabelTouchEnd: (e) ->
+    @_handleLabelMouseUp(e)
+
+  _handleLabelMouseLeave: (e) ->
+    @_handleLabelMouseUp(e)
+
 
   render: ->
     wrapperClass = do =>
@@ -314,15 +296,10 @@ module.exports = React.createClass
       classes.push "#{@_prop('baseClass')}-focused" if @state.focus
       classes.join " "
 
-    onElm = <span ref={(c) => @_on= c} style={{ width: @state.handleWidth }}
-      className={"#{@_prop('baseClass')}-handle-on #{@_prop('baseClass')}-#{@_prop('onColor')}"}>
-        { @_prop('onText') }
-      </span>
-    offElm = <span ref={(c) => @_off = c} style={{ width: @state.handleWidth }}
-      className={"#{@_prop('baseClass')}-handle-off #{@_prop('baseClass')}-#{@_prop('offColor')}"}>
-        { @_prop('offText') }
-      </span>
 
+    onElm = <span ref={(c) => @_on = c} style={{ width: @state.handleWidth }} onClick={@_handleOnClick} className={"#{@_prop('baseClass')}-handle-on #{@_prop('baseClass')}-#{@_prop('onColor')}"}>{@_prop('onText')}</span>
+    label = <span className={"#{@_prop('baseClass')}-label"} style={{width:@state.labelWidth}} ref={(c) => @_label = c} onClick={@_handleLabelClick} onMouseDown={@_handleLabelMouseDown} onTouchDown={@_handleLabelTouchStart} onMouseMove={@_handleLabelMouseMove} onTouchMove={@_handleLabelTouchMove} onMouseUp={@_handleLabelMouseUp} onMouseLeave={@_handleLabelMouseLeave} onTouchEnd={@_handleLabelTouchEnd}>{ @_prop('labelText') }</span>
+    offElm = <span ref={(c) => @_off = c} style={{ width: @state.handleWidth }} onClick={@_handleOffClick} className={"#{@_prop('baseClass')}-handle-off #{@_prop('baseClass')}-#{@_prop('offColor')}"}>{@_prop('offText')}</span>
     containerWidth = @state.labelWidth+@state.handleWidth*2
     wrapperWidth = @state.labelWidth+@state.handleWidth
     if(containerWidth == wrapperWidth)
@@ -332,9 +309,9 @@ module.exports = React.createClass
       <div className={ wrapperClass } ref={(c) => @_wrapper = c} style={{width:wrapperWidth}}>
         <div className={ "#{@_prop('baseClass')}-container" } ref={(c) => @_container = c} style={{width:containerWidth, marginLeft:@state.offset}}>
           {if @_prop('inverse') then offElm else onElm}
-          <span className={"#{@_prop('baseClass')}-label"} style={{width:@state.labelWidth}} ref={(c) => @_label = c}>{ @_prop('labelText') }</span>
+          {label}
           {if @_prop('inverse') then onElm else offElm}
-          <input type="checkbox" ref={(c) => @_element = c} />
+          <input type='checkbox' onChange={@_handleElementChange}_onFocus={@_handleElementFocus} onBlur={@_handleElementBlur} onKeyDown={@_handleElementKeyDown} />
         </div>
       </div>
     )
