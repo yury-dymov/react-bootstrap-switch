@@ -303,7 +303,7 @@
       e.stopPropagation();
       this.setState({
         indeterminate: false,
-        dragStart: (e.pageX || e.originalEvent.touches[0].pageX) - parseInt(this.state.offset, 10)
+        dragStart: (e.pageX || e.nativeEvent.touches[0].pageX) - parseInt(this.state.offset, 10)
       });
       return this._handleElementFocus;
     },
@@ -316,7 +316,7 @@
         return;
       }
       e.preventDefault();
-      difference = (e.pageX || e.originalEvent.touches[0].pageX) - this.state.dragStart;
+      difference = (e.pageX || e.nativeEvent.touches[0].pageX) - this.state.dragStart;
       if (difference < -this.state.handleWidth || difference > 0) {
         return;
       }

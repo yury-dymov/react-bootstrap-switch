@@ -233,7 +233,7 @@ module.exports = React.createClass
 
     @setState
       indeterminate: false
-      dragStart: (e.pageX or e.originalEvent.touches[0].pageX) - parseInt @state.offset, 10
+      dragStart: (e.pageX or e.nativeEvent.touches[0].pageX) - parseInt @state.offset, 10
     @_handleElementFocus
 
   _handleLabelTouchStart: (e) ->
@@ -244,7 +244,7 @@ module.exports = React.createClass
 
     e.preventDefault()
 
-    difference = (e.pageX or e.originalEvent.touches[0].pageX) - @state.dragStart
+    difference = (e.pageX or e.nativeEvent.touches[0].pageX) - @state.dragStart
     return  if difference < -@state.handleWidth or difference > 0
 
     @setState
