@@ -298,7 +298,7 @@ module.exports = React.createClass
 
 
     onElm = <span ref={(c) => @_on = c} style={{ width: @state.handleWidth }} onClick={@_handleOnClick} className={"#{@_prop('baseClass')}-handle-on #{@_prop('baseClass')}-#{@_prop('onColor')}"}>{@_prop('onText')}</span>
-    label = <span className={"#{@_prop('baseClass')}-label"} style={{width:@state.labelWidth}} ref={(c) => @_label = c} onClick={@_handleLabelClick} onMouseDown={@_handleLabelMouseDown} onTouchDown={@_handleLabelTouchStart} onMouseMove={@_handleLabelMouseMove} onTouchMove={@_handleLabelTouchMove} onMouseUp={@_handleLabelMouseUp} onMouseLeave={@_handleLabelMouseLeave} onTouchEnd={@_handleLabelTouchEnd}>{ @_prop('labelText') }</span>
+    label = <span className={"#{@_prop('baseClass')}-label"} style={{width:@state.labelWidth}} ref={(c) => @_label = c} onClick={@_handleLabelClick} onMouseDown={@_handleLabelMouseDown} onTouchStart={@_handleLabelTouchStart} onMouseMove={@_handleLabelMouseMove} onTouchMove={@_handleLabelTouchMove} onMouseUp={@_handleLabelMouseUp} onMouseLeave={@_handleLabelMouseLeave} onTouchEnd={@_handleLabelTouchEnd}>{ @_prop('labelText') }</span>
     offElm = <span ref={(c) => @_off = c} style={{ width: @state.handleWidth }} onClick={@_handleOffClick} className={"#{@_prop('baseClass')}-handle-off #{@_prop('baseClass')}-#{@_prop('offColor')}"}>{@_prop('offText')}</span>
     containerWidth = @state.labelWidth+@state.handleWidth*2
     wrapperWidth = @state.labelWidth+@state.handleWidth

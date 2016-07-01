@@ -416,7 +416,7 @@
         })(this)),
         "onClick": this._handleLabelClick,
         "onMouseDown": this._handleLabelMouseDown,
-        "onTouchDown": this._handleLabelTouchStart,
+        "onTouchStart": this._handleLabelTouchStart,
         "onMouseMove": this._handleLabelMouseMove,
         "onTouchMove": this._handleLabelTouchMove,
         "onMouseUp": this._handleLabelMouseUp,
