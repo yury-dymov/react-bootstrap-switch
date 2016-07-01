@@ -464,7 +464,7 @@
       }, (this._prop('inverse') ? offElm : onElm), label, (this._prop('inverse') ? onElm : offElm), React.createElement("input", {
         "type": 'checkbox',
         "onChange": this._handleElementChange,
-        "_onFocus": this._handleElementFocus,
+        "onFocus": this._handleElementFocus,
         "onBlur": this._handleElementBlur,
         "onKeyDown": this._handleElementKeyDown
       })));

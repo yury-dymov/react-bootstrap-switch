@@ -311,7 +311,7 @@ module.exports = React.createClass
           {if @_prop('inverse') then offElm else onElm}
           {label}
           {if @_prop('inverse') then onElm else offElm}
-          <input type='checkbox' onChange={@_handleElementChange}_onFocus={@_handleElementFocus} onBlur={@_handleElementBlur} onKeyDown={@_handleElementKeyDown} />
+          <input type='checkbox' onChange={@_handleElementChange} onFocus={@_handleElementFocus} onBlur={@_handleElementBlur} onKeyDown={@_handleElementKeyDown} />
         </div>
       </div>
     )
