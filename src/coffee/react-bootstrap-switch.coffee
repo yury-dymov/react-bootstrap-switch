@@ -35,7 +35,7 @@ module.exports = React.createClass
 
   componentWillReceiveProps: (nextProps) ->
     this.disabled(!!nextProps.disabled)
-    this.value(nextProps.state, nextProps)
+    this.value(nextProps.state, nextProps, true)
 
   _prop: (key) ->
     if typeof @props[key] == 'undefined'
@@ -43,7 +43,7 @@ module.exports = React.createClass
     else
       @props[key]
 
-  value: (val, nextProps = {}) ->
+  value: (val, nextProps = {}, skipAnimation = false) ->
     disabled = if typeof nextProps.disabled is "undefined" then @state.disabled else nextProps.disabled
     readonly = if typeof nextProps.readonly is "undefined" then @state.readonly else nextProps.readonly
 
@@ -53,7 +53,7 @@ module.exports = React.createClass
     return @ if @state.state == val
 
     # remove indeterminate
-    @_changeState not not val
+    @_changeState not not val, skipAnimation
     @
 
   valueState: (val) ->
@@ -120,11 +120,11 @@ module.exports = React.createClass
     return @props.onChange(this, @state.state) if(@props.onChange.length >= 2)
     @props.onChange(@state.state)
 
-  _changeState: (state) ->
+  _changeState: (state, skipAnimation = false) ->
     @setState
       indeterminate: false
       state:state, =>
-        @_containerPosition()
+        @_containerPosition(state.state, skipAnimation)
         @_fireStateChange()
 
   _handleToggle: (event, value) ->
@@ -145,7 +145,7 @@ module.exports = React.createClass
 
   componentDidMount: ->
     init = =>
-      @_width => @_containerPosition null
+      @_width => @_containerPosition null, true
 
     wrapperVisible = =>
       elem = findDOMNode(@_wrapper)
@@ -170,11 +170,8 @@ module.exports = React.createClass
       labelWidth: width, callback
 
 
-  _containerPosition: (state = @state.state) ->
+  _containerPosition: (state = @state.state, skipAnimation = false) ->
     values = [0, "-#{@state.handleWidth}px"]
-
-    # skip animating if no offset yet
-    skipAnimation = @state.offset == null
 
     if @state.indeterminate
       return @setState

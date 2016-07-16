@@ -50,7 +50,7 @@
     },
     componentWillReceiveProps: function(nextProps) {
       this.disabled(!!nextProps.disabled);
-      return this.value(nextProps.state, nextProps);
+      return this.value(nextProps.state, nextProps, true);
     },
     _prop: function(key) {
       if (typeof this.props[key] === 'undefined') {
@@ -59,10 +59,13 @@
         return this.props[key];
       }
     },
-    value: function(val, nextProps) {
+    value: function(val, nextProps, skipAnimation) {
       var disabled, readonly;
       if (nextProps == null) {
         nextProps = {};
+      }
+      if (skipAnimation == null) {
+        skipAnimation = false;
       }
       disabled = typeof nextProps.disabled === "undefined" ? this.state.disabled : nextProps.disabled;
       readonly = typeof nextProps.readonly === "undefined" ? this.state.readonly : nextProps.readonly;
@@ -75,7 +78,7 @@
       if (this.state.state === val) {
         return this;
       }
-      this._changeState(!!val);
+      this._changeState(!!val, skipAnimation);
       return this;
     },
     valueState: function(val) {
@@ -163,13 +166,16 @@
       }
       return this.props.onChange(this.state.state);
     },
-    _changeState: function(state) {
+    _changeState: function(state, skipAnimation) {
+      if (skipAnimation == null) {
+        skipAnimation = false;
+      }
       return this.setState({
         indeterminate: false,
         state: state
       }, (function(_this) {
         return function() {
-          _this._containerPosition();
+          _this._containerPosition(state.state, skipAnimation);
           return _this._fireStateChange();
         };
       })(this));
@@ -194,7 +200,7 @@
       init = (function(_this) {
         return function() {
           return _this._width(function() {
-            return _this._containerPosition(null);
+            return _this._containerPosition(null, true);
           });
         };
       })(this);
@@ -226,13 +232,15 @@
         labelWidth: width
       }, callback);
     },
-    _containerPosition: function(state) {
-      var skipAnimation, values;
+    _containerPosition: function(state, skipAnimation) {
+      var values;
       if (state == null) {
         state = this.state.state;
       }
+      if (skipAnimation == null) {
+        skipAnimation = false;
+      }
       values = [0, "-" + this.state.handleWidth + "px"];
-      skipAnimation = this.state.offset === null;
       if (this.state.indeterminate) {
         return this.setState({
           skipAnimation: skipAnimation,
