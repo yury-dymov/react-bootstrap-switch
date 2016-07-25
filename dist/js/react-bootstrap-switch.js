@@ -457,7 +457,8 @@
         })(this)),
         "style": {
           width: wrapperWidth
-        }
+        },
+        "title": (this.state.state ? this._prop('titleOn') : this._prop('titleOff'))
       }, React.createElement("div", {
         "className": (this._prop('baseClass')) + "-container",
         "ref": ((function(_this) {

@@ -303,7 +303,7 @@ module.exports = React.createClass
       containerWidth = wrapperWidth = "auto"
 
     return (
-      <div className={ wrapperClass } ref={(c) => @_wrapper = c} style={{width:wrapperWidth}}>
+      <div className={ wrapperClass } ref={(c) => @_wrapper = c} style={{width:wrapperWidth}} title={if @state.state then @_prop('titleOn') else @_prop('titleOff')}>
         <div className={ "#{@_prop('baseClass')}-container" } ref={(c) => @_container = c} style={{width:containerWidth, marginLeft:@state.offset}}>
           {if @_prop('inverse') then offElm else onElm}
           {label}
