@@ -25,7 +25,7 @@ module.exports = React.createClass
     state: @_prop('state')
     handleWidth: @_prop('handleWidth')
     labelWidth: @_prop('labelWidth')
-    offset: null
+    offset: if @_prop('state') == false then (-@_prop('labelWidth') || 0) else 0
     skipAnimation: true
     dragStart: false
     focus: false

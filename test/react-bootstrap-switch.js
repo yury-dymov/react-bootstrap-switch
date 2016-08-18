@@ -39,7 +39,7 @@
         state: this._prop('state'),
         handleWidth: this._prop('handleWidth'),
         labelWidth: this._prop('labelWidth'),
-        offset: null,
+        offset: this._prop('state') === false ? -this._prop('labelWidth') || 0 : 0,
         skipAnimation: true,
         dragStart: false,
         focus: false,
